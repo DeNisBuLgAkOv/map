@@ -1,24 +1,76 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import maplibregl from "maplibre-gl";
+import Map from "./components/Map";
+import Drawing from "./components/Drawing/Drawing";
 import './App.css';
 
+export interface Point {
+  id: string;
+  coordinates: [number, number];
+  time: Date;
+  marker?: maplibregl.Marker;
+}
+
 function App() {
+  const [drawingMode, setDrawingMode] = useState<'point' | 'line' | 'none'>('none');
+  const [points, setPoints] = useState<Point[]>([]);
+  const [lines, setLines] = useState<Array<[number, number]>>([]);
+  const [isShowPoints, setIsShowPoints] = useState(true);
+  const [isShowLines, setIsShowLines] = useState(true);
+  const [removeLines, setRemoveLines] = useState(false);
+
+  const addPoints = (point: Point) => {
+    setPoints([...points, point]);
+  };
+
+  const addLines = (line: [number, number] | []) => {
+    setRemoveLines(false);
+    if (line.length) {
+      setLines((prevLines) => [...prevLines, line]);
+    } else {
+      setLines(line);
+    }
+  };
+
+  const showPoints = () => {
+    setIsShowPoints(!isShowPoints);
+  };
+
+  const showLines = () => {
+    setIsShowLines(!isShowLines);
+  };
+
+  const deletePoints = () => {
+    points.forEach((point) => point.marker?.remove());
+    setPoints([]);
+  };
+
+  const deleteLines = () => {
+    setRemoveLines(true);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Drawing
+        isShowPoints={isShowPoints}
+        isShowLines={isShowLines}
+        setDrawingMode={setDrawingMode}
+        showPoints={showPoints}
+        showLines={showLines}
+        deletePoints={deletePoints}
+        deleteLines={deleteLines}
+      />
+      <Map
+        drawingMode={drawingMode}
+        setDrawingMode={setDrawingMode}
+        points={points}
+        addPoints={addPoints}
+        lines={lines}
+        addLines={addLines}
+        isShowPoints={isShowPoints}
+        isShowLines={isShowLines}
+        removeLines={removeLines}
+      />
     </div>
   );
 }
